@@ -1,0 +1,185 @@
+<template>
+    <section id="app" class="flexbox-container">
+        <header-component />
+        <div class="flexbox-content">
+            <div id="one" class="split split-horizontal flexbox-container">
+
+                <header-component />
+                <div class="flexbox-content">
+
+                    Et est admodum mirum videre plebem innumeram mentibus ardore quodam infuso cum dimicationum curulium eventu pendentem. haec similiaque memorabile nihil vel serium agi Romae permittunt. ergo redeundum ad textum.
+                    Soleo saepe ante oculos ponere, idque libenter crebris usurpare sermonibus, omnis nostrorum imperatorum, omnis exterarum gentium potentissimorumque populorum, omnis clarissimorum regum res gestas, cum tuis nec contentionum magnitudine nec numero proeliorum nec varietate regionum nec celeritate conficiendi nec dissimilitudine bellorum posse conferri; nec vero disiunctissimas terras citius passibus cuiusquam potuisse peragrari, quam tuis non dicam cursibus, sed victoriis lustratae sunt.
+                    Sed tamen haec cum ita tutius observentur, quidam vigore artuum inminuto rogati ad nuptias ubi aurum dextris manibus cavatis offertur, inpigre vel usque Spoletium pergunt. haec nobilium sunt instituta.
+                    Denique Antiochensis ordinis vertices sub uno elogio iussit occidi ideo efferatus, quod ei celebrari vilitatem intempestivam urgenti, cum inpenderet inopia, gravius rationabili responderunt; et perissent ad unum ni comes orientis tunc Honoratus fixa constantia restitisset.
+                    Equitis Romani autem esse filium criminis loco poni ab accusatoribus neque his iudicantibus oportuit neque defendentibus nobis. Nam quod de pietate dixistis, est quidem ista nostra existimatio, sed iudicium certe parentis; quid nos opinemur, audietis ex iuratis; quid parentes sentiant, lacrimae matris incredibilisque maeror, squalor patris et haec praesens maestitia, quam cernitis, luctusque declarat.
+                    Quae dum ita struuntur, indicatum est apud Tyrum indumentum regale textum occulte, incertum quo locante vel cuius usibus apparatum. ideoque rector provinciae tunc pater Apollinaris eiusdem nominis ut conscius ductus est aliique congregati sunt ex diversis civitatibus multi, qui atrocium criminum ponderibus urgebantur.
+                    Paphius quin etiam et Cornelius senatores, ambo venenorum artibus pravis se polluisse confessi, eodem pronuntiante Maximino sunt interfecti. pari sorte etiam procurator monetae extinctus est. Sericum enim et Asbolium supra dictos, quoniam cum hortaretur passim nominare, quos vellent, adiecta religione firmarat, nullum igni vel ferro se puniri iussurum, plumbi validis ictibus interemit. et post hoe flammis Campensem aruspicem dedit, in negotio eius nullo sacramento constrictus.
+                    Hac ex causa conlaticia stipe Valerius humatur ille Publicola et subsidiis amicorum mariti inops cum liberis uxor alitur Reguli et dotatur ex aerario filia Scipionis, cum nobilitas florem adultae virginis diuturnum absentia pauperis erubesceret patris.
+                    Postremo ad id indignitatis est ventum, ut cum peregrini ob formidatam haut ita dudum alimentorum inopiam pellerentur ab urbe praecipites, sectatoribus disciplinarum liberalium inpendio paucis sine respiratione ulla extrusis, tenerentur minimarum adseclae veri, quique id simularunt ad tempus, et tria milia saltatricum ne interpellata quidem cum choris totidemque remanerent magistris.
+                    Inter haec Orfitus praefecti potestate regebat urbem aeternam ultra modum delatae dignitatis sese efferens insolenter, vir quidem prudens et forensium negotiorum oppido gnarus, sed splendore liberalium doctrinarum minus quam nobilem decuerat institutus, quo administrante seditiones sunt concitatae graves ob inopiam vini: huius avidis usibus vulgus intentum ad motus asperos excitatur et crebros.
+                    Iis igitur est difficilius satis facere, qui se Latina scripta dicunt contemnere. in quibus hoc primum est in quo admirer, cur in gravissimis rebus non delectet eos sermo patrius, cum idem fabellas Latinas ad verbum e Graecis expressas non inviti legant. quis enim tam inimicus paene nomini Romano est, qui Ennii Medeam aut Antiopam Pacuvii spernat aut reiciat, quod se isdem Euripidis fabulis delectari dicat, Latinas litteras oderit?
+                    Ultima Syriarum est Palaestina per intervalla magna protenta, cultis abundans terris et nitidis et civitates habens quasdam egregias, nullam nulli cedentem sed sibi vicissim velut ad perpendiculum aemulas: Caesaream, quam ad honorem Octaviani principis exaedificavit Herodes, et Eleutheropolim et Neapolim itidemque Ascalonem Gazam aevo superiore exstructas.
+                    Post quorum necem nihilo lenius ferociens Gallus ut leo cadaveribus pastus multa huius modi scrutabatur. quae singula narrare non refert, me professione modum, quod evitandum est, excedamus.
+                    Quid? qui se etiam nunc subsidiis patrimonii aut amicorum liberalitate sustentant, hos perire patiemur? An, si qui frui publico non potuit per hostem, hic tegitur ipsa lege censoria; quem is frui non sinit, qui est, etiamsi non appellatur, hostis, huic ferri auxilium non oportet? Retinete igitur in provincia diutius eum, qui de sociis cum hostibus, de civibus cum sociis faciat pactiones, qui hoc etiam se pluris esse quam collegam putet, quod ille vos tristia voltuque deceperit, ipse numquam se minus quam erat, nequam esse simularit. Piso autem alio quodam modo gloriatur se brevi tempore perfecisse, ne Gabinius unus omnium nequissimus existimaretur.
+                    Hinc ille commotus ut iniusta perferens et indigna praefecti custodiam protectoribus mandaverat fidis. quo conperto Montius tunc quaestor acer quidem sed ad lenitatem propensior, consulens in commune advocatos palatinarum primos scholarum adlocutus est mollius docens nec decere haec fieri nec prodesse addensque vocis obiurgatorio sonu quod si id placeret, post statuas Constantii deiectas super adimenda vita praefecto conveniet securius cogitari.
+                </div>
+                <footer-component />
+
+            </div>
+            <div id="two" class="split split-horizontal flexbox-container">
+                <header-component />
+                <div class="flexbox-content">
+
+                </div>
+                <footer-component />
+            </div>
+        </div>
+        <footer-component />
+    </section>
+</template>
+
+<script>
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('Looks like we are in development mode!');
+    }
+
+    import headerComponent from './header.vue'
+    import footerComponent from './footer.vue'
+    import Vuebar from 'vuebar'
+
+    import Split from 'split.js'
+
+    export default {
+        components: {
+            headerComponent, footerComponent
+        },
+        mounted: function () {
+            Split(['#one', '#two'], {
+                sizes: [25, 75],
+                minSize: 200
+            });
+        }
+    }
+
+
+
+</script>
+
+<style lang="scss">
+    *, *:before, *:after {
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+    html, body {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: #ffd800;
+        color: #444444;
+        font-size: 14px;
+    }
+
+
+    .flexbox-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+
+    .flexbox-content {
+        flex: 1;
+        background-color: rgba(48, 121, 244,.5);
+        overflow: auto;
+        min-height: 0;
+    }
+
+    #one {
+        background-color: #e4e4e4;
+    }
+
+    #two {
+        background-color: rgba(48, 121, 244,.3);
+    }
+
+    .split {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .content {
+        border: 1px solid #C0C0C0;
+        box-shadow: inset 0 1px 2px #e4e4e4;
+        background-color: #fff;
+    }
+
+    .gutter {
+        background-color: transparent;
+        background-repeat: no-repeat;
+        background-position: 50%;
+    }
+
+        .gutter.gutter-horizontal {
+            cursor: col-resize;
+            /*background-image: url('../grips/vertical.png');*/
+        }
+
+        .gutter.gutter-vertical {
+            cursor: row-resize;
+            /*background-image: url('../grips/horizontal.png');*/
+        }
+
+        .split.split-horizontal, .gutter.gutter-horizontal {
+            height: 100%;
+            float: left;
+        }
+
+    .vb > .vb-dragger {
+        z-index: 5;
+        width: 12px;
+        right: 0;
+
+    }
+
+        .vb > .vb-dragger > .vb-dragger-styler {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transform: rotate3d(0,0,0,0);
+            transform: rotate3d(0,0,0,0);
+            -webkit-transition: background-color 100ms ease-out, margin 100ms ease-out, height 100ms ease-out;
+            transition: background-color 100ms ease-out, margin 100ms ease-out, height 100ms ease-out;
+            background-color: rgba(48, 121, 244,.1);
+            margin: 5px 5px 5px 0;
+            border-radius: 20px;
+            height: calc(100% - 10px);
+            display: block;
+        }
+
+    .vb.vb-scrolling-phantom > .vb-dragger > .vb-dragger-styler {
+        background-color: rgba(48, 121, 244,.3);
+    }
+
+    .vb > .vb-dragger:hover > .vb-dragger-styler {
+        background-color: rgba(48, 121, 244,.5);
+        margin: 0px;
+        height: 100%;
+    }
+
+    .vb.vb-dragging > .vb-dragger > .vb-dragger-styler {
+        background-color: rgba(48, 121, 244,.5);
+        margin: 0px;
+        height: 100%;
+    }
+
+    .vb.vb-dragging-phantom > .vb-dragger > .vb-dragger-styler {
+        background-color: rgba(48, 121, 244,.5);
+    }
+</style>

@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SAP + Nintendo — Planning Chauffeurs</title>
+  <style>
+    :root{
+      --bg0:#070b12;
+      --bg1:#0b1220;
+      --panel: rgba(14, 24, 40, .62);
+      --panel2: rgba(10, 18, 32, .55);
+      --line: rgba(255,255,255,.10);
+      --line2: rgba(255,255,255,.06);
+      --text: rgba(255,255,255,.88);
+      --muted: rgba(255,255,255,.62);
+
+      --blue:#4aa8ff;
+      --blue2:#2b6cff;
+
+      --ok:#29e38c;
+      --risk:#ffd85c;
+      --late:#ff5a6b;
+      --idle:#4aa8ff;
+      --pause:#ffcf4a;
+
+      --glowBlue: 0 0 14px rgba(74,168,255,.35), 0 0 42px rgba(43,108,255,.22);
+      --glowOk:   0 0 14px rgba(41,227,140,.28), 0 0 46px rgba(41,227,140,.16);
+      --glowRisk: 0 0 14px rgba(255,216,92,.28), 0 0 46px rgba(255,216,92,.14);
+      --glowLate: 0 0 14px rgba(255,90,107,.28), 0 0 46px rgba(255,90,107,.14);
+
+      --radius: 16px;
+      --shadow: 0 14px 50px rgba(0,0,0,.55);
+
+      /* Timeline sizing */
+      --hour: 92px;         /* largeur d'une heure */
+      --laneH: 70px;        /* hauteur d'une ligne chauffeur */
+      --headW: 260px;       /* colonne chauffeurs */
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(74,168,255,.14), transparent 60%),
+        radial-gradient(900px 600px at 70% 35%, rgba(41,227,140,.10), transparent 60%),
+        radial-gradient(1000px 700px at 60% 95%, rgba(255,90,107,.08), transparent 65%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow:hidden;
+    }
+
+    /* App shell */
+    .app{
+      height:100%;
+      display:grid;
+      grid-template-rows: 56px 1fr;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:0 14px;
+      border-bottom:1px solid var(--line);
+      background: rgba(10,16,28,.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:900;
+      letter-spacing:.3px;
+    }
+    .brand .badge{
+      width:34px; height:34px;
+      display:grid; place-items:center;
+      border-radius:12px;
+      background: rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--glowBlue);
+      user-select:none;
+    }
+    .brand .title{
+      display:flex;
+      flex-direction:column;
+      line-height:1.05;
+    }
+    .brand .title small{
+      color:var(--muted);
+      font-weight:700;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:11px;
+      margin-top:2px;
+    }
+
+    .search{
+      margin-left:10px;
+      flex:1;
+      max-width:560px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.35) inset;
+      color:var(--muted);
+    }
+    .search .icon{ opacity:.9; }
+    .search input{
+      flex:1;
+      border:none;
+      outline:none;
+      background:transparent;
+      color:var(--text);
+      font-size:14px;
+    }
+    .search input::placeholder{ color:rgba(255,255,255,.45); }
+
+    .kpis{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-left:auto;
+    }
+    .kpi{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 10px;
+      border-radius:14px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .kpi .pix{
+      width:12px; height:12px;
+      border-radius:4px;
+      background: var(--ok);
+      box-shadow: var(--glowOk);
+    }
+    .kpi .num{
+      font-weight:950;
+      letter-spacing:.06em; /* vibe “compteur” */
+      text-shadow: 0 1px 0 rgba(0,0,0,.7);
+    }
+    .kpi .lbl{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    /* Content */
+    .content{
+      height:100%;
+      padding:14px;
+      overflow:hidden;
+    }
+
+    .panel{
+      height:100%;
+      border-radius: var(--radius);
+      background: var(--panel);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .panelHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      background: rgba(0,0,0,.16);
+    }
+    .panelHead .left{
+      display:flex; align-items:center; gap:10px;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+    }
+    .chip .dot{
+      width:10px; height:10px;
+      border-radius:999px;
+      background: var(--blue);
+      box-shadow: var(--glowBlue);
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.07);
+      color:var(--text);
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.35) inset;
+    }
+    .btn:active{ transform: translateY(1px); }
+
+    /* Micro “particles” sur événement (classe .pop) */
+    .btn.pop::after{
+      content:"";
+      position:absolute;
+      inset:-10px;
+      border-radius:18px;
+      background:
+        radial-gradient(circle at 20% 35%, rgba(41,227,140,.38), transparent 55%),
+        radial-gradient(circle at 70% 40%, rgba(255,216,92,.25), transparent 60%),
+        radial-gradient(circle at 55% 75%, rgba(255,90,107,.18), transparent 55%);
+      opacity:0;
+      animation: pop 360ms ease-out forwards;
+      pointer-events:none;
+    }
+    .btn{ position:relative; }
+    @keyframes pop{
+      0%{ opacity:.9; transform:scale(.96); filter: blur(1px); }
+      100%{ opacity:0; transform:scale(1.10); filter: blur(0px); }
+    }
+
+    /* Grid wrapper */
+    .gridWrap{
+      position:relative;
+      flex:1;
+      overflow:auto;
+      background: linear-gradient(180deg, rgba(255,255,255,.02), transparent);
+    }
+
+    /* Sticky left column + scrollable timeline */
+    .grid{
+      min-width: calc(var(--headW) + (24 * var(--hour)));
+      /* header + 24 heures */
+    }
+
+    /* Time header row */
+    .timeHeader{
+      position:sticky;
+      top:0;
+      z-index:30;
+      display:flex;
+      border-bottom:1px solid var(--line);
+      background: rgba(7,12,20,.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .timeHeader .leftCol{
+      width: var(--headW);
+      flex:0 0 var(--headW);
+      border-right:1px solid var(--line);
+      padding:12px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--muted);
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:12px;
+    }
+    .timeHeader .axis{
+      position:relative;
+      flex:1;
+      height:56px;
+      display:flex;
+      align-items:flex-end;
+      padding:0 10px 8px;
+      gap:0;
+    }
+
+    .tick{
+      width: var(--hour);
+      flex:0 0 var(--hour);
+      position:relative;
+      padding-left:8px;
+      color: rgba(255,255,255,.80);
+      font-weight:900;
+      letter-spacing:.06em;
+      text-shadow: 0 1px 0 rgba(0,0,0,.7);
+    }
+
+    /* vertical tick line + glow point */
+    .tick::before{
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:-8px;
+      width:1px;
+      height: 38px;
+      background: rgba(255,255,255,.10);
+    }
+    .tick::after{
+      content:"";
+      position:absolute;
+      left:-3px;
+      bottom:-8px;
+      width:7px; height:7px;
+      border-radius:3px;
+      background: rgba(74,168,255,.55);
+      box-shadow: var(--glowBlue);
+      opacity:.9;
+    }
+
+    /* Rows */
+    .row{
+      display:flex;
+      border-bottom:1px solid var(--line2);
+      min-height: var(--laneH);
+    }
+
+    .row .leftCol{
+      width: var(--headW);
+      flex:0 0 var(--headW);
+      border-right:1px solid var(--line);
+      background: rgba(0,0,0,.12);
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      position:sticky;
+      left:0;
+      z-index:25;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .avatar{
+      width:44px; height:44px;
+      border-radius:14px;
+      background: rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.12);
+      display:grid; place-items:center;
+      font-size:20px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.35) inset;
+      user-select:none;
+    }
+
+    .driverInfo{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      min-width:0;
+    }
+    .driverInfo .name{
+      font-weight:950;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      letter-spacing:.2px;
+    }
+    .driverInfo .meta{
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .pillMini{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      font-weight:900;
+      font-size:11px;
+      color:rgba(255,255,255,.75);
+    }
+    .pillMini .sq{
+      width:10px; height:10px;
+      border-radius:4px;
+      background: rgba(255,255,255,.25);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.35) inset;
+    }
+    .sq.ok{ background: var(--ok); box-shadow: var(--glowOk); }
+    .sq.risk{ background: var(--risk); box-shadow: var(--glowRisk); }
+    .sq.late{ background: var(--late); box-shadow: var(--glowLate); }
+
+    /* Timeline lane */
+    .lane{
+      position:relative;
+      flex:1;
+      height: var(--laneH);
+      /* background subtle grid */
+      background:
+        repeating-linear-gradient(to right,
+          rgba(255,255,255,.05) 0px,
+          rgba(255,255,255,.05) 1px,
+          transparent 1px,
+          transparent var(--hour)
+        );
+    }
+
+    /* “Now” line */
+    .now{
+      position:absolute;
+      top:0; bottom:0;
+      left: calc(10px + (12.6 * var(--hour))); /* ~12:36 */
+      width:2px;
+      background: rgba(74,168,255,.85);
+      box-shadow: var(--glowBlue);
+      opacity:.85;
+      pointer-events:none;
+    }
+    .now::after{
+      content:"";
+      position:absolute;
+      top:10px;
+      left:-6px;
+      width:14px; height:14px;
+      border-radius:6px;
+      background: rgba(74,168,255,.65);
+      box-shadow: var(--glowBlue);
+    }
+
+    /* Segments */
+    .seg{
+      position:absolute;
+      top: 14px;
+      height: 42px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.35) inset;
+      display:flex;
+      align-items:center;
+      padding:0 12px;
+      gap:10px;
+      overflow:hidden;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+      font-weight:950;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    /* “pixel” notches on segment sides */
+    .seg::before, .seg::after{
+      content:"";
+      position:absolute;
+      top:0; bottom:0;
+      width:10px;
+      opacity:.75;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(0,0,0,.35) 0px,
+          rgba(0,0,0,.35) 6px,
+          transparent 6px,
+          transparent 12px
+        );
+      mix-blend-mode: overlay;
+    }
+    .seg::before{ left:0; }
+    .seg::after{ right:0; }
+
+    .seg .label{
+      font-size:13px;
+      text-shadow: 0 1px 0 rgba(0,0,0,.65);
+    }
+
+    .seg.ok{
+      background: linear-gradient(180deg, rgba(41,227,140,.28), rgba(41,227,140,.12));
+      box-shadow: var(--glowOk);
+    }
+    .seg.pause{
+      background: linear-gradient(180deg, rgba(255,207,74,.28), rgba(255,207,74,.12));
+      box-shadow: var(--glowRisk);
+    }
+    .seg.idle{
+      background: linear-gradient(180deg, rgba(74,168,255,.24), rgba(74,168,255,.10));
+      box-shadow: var(--glowBlue);
+    }
+    .seg.late{
+      background: linear-gradient(180deg, rgba(255,90,107,.28), rgba(255,90,107,.12));
+      box-shadow: var(--glowLate);
+    }
+
+    /* Event badge (TERMINÉ!) with sparkle */
+    .event{
+      position:absolute;
+      top: 10px;
+      height: 50px;
+      border-radius: 14px;
+      padding: 0 14px;
+      display:flex;
+      align-items:center;
+      font-weight:1000;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      box-shadow: var(--glowBlue);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .event.done{
+      background: linear-gradient(180deg, rgba(74,168,255,.22), rgba(74,168,255,.10));
+    }
+    .event.done::after{
+      content:"";
+      position:absolute;
+      inset:-8px;
+      border-radius:18px;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(255,216,92,.35), transparent 58%),
+        radial-gradient(circle at 65% 40%, rgba(255,255,255,.30), transparent 60%),
+        radial-gradient(circle at 50% 80%, rgba(41,227,140,.22), transparent 62%);
+      opacity:.0;
+      animation: sparkle 1.2s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes sparkle{
+      0%{ opacity:.0; transform:scale(.98); filter:blur(1px); }
+      30%{ opacity:.85; transform:scale(1.03); filter:blur(0px); }
+      60%{ opacity:.25; transform:scale(1.07); filter:blur(0px); }
+      100%{ opacity:.0; transform:scale(.98); filter:blur(1px); }
+    }
+
+    /* Helpers: position by hour */
+    /* left = 10px padding in axis/lane */
+    .h0  { left: calc(10px + (0  * var(--hour))); }
+    .h1  { left: calc(10px + (1  * var(--hour))); }
+    .h2  { left: calc(10px + (2  * var(--hour))); }
+    .h3  { left: calc(10px + (3  * var(--hour))); }
+    .h4  { left: calc(10px + (4  * var(--hour))); }
+    .h5  { left: calc(10px + (5  * var(--hour))); }
+    .h6  { left: calc(10px + (6  * var(--hour))); }
+    .h7  { left: calc(10px + (7  * var(--hour))); }
+    .h8  { left: calc(10px + (8  * var(--hour))); }
+    .h9  { left: calc(10px + (9  * var(--hour))); }
+    .h10 { left: calc(10px + (10 * var(--hour))); }
+    .h11 { left: calc(10px + (11 * var(--hour))); }
+    .h12 { left: calc(10px + (12 * var(--hour))); }
+    .h13 { left: calc(10px + (13 * var(--hour))); }
+    .h14 { left: calc(10px + (14 * var(--hour))); }
+    .h15 { left: calc(10px + (15 * var(--hour))); }
+    .h16 { left: calc(10px + (16 * var(--hour))); }
+    .h17 { left: calc(10px + (17 * var(--hour))); }
+    .h18 { left: calc(10px + (18 * var(--hour))); }
+    .h19 { left: calc(10px + (19 * var(--hour))); }
+    .h20 { left: calc(10px + (20 * var(--hour))); }
+    .h21 { left: calc(10px + (21 * var(--hour))); }
+    .h22 { left: calc(10px + (22 * var(--hour))); }
+    .h23 { left: calc(10px + (23 * var(--hour))); }
+
+    .w1  { width: calc(1  * var(--hour)); }
+    .w2  { width: calc(2  * var(--hour)); }
+    .w3  { width: calc(3  * var(--hour)); }
+    .w4  { width: calc(4  * var(--hour)); }
+    .w5  { width: calc(5  * var(--hour)); }
+    .w6  { width: calc(6  * var(--hour)); }
+    .w7  { width: calc(7  * var(--hour)); }
+    .w8  { width: calc(8  * var(--hour)); }
+    .w9  { width: calc(9  * var(--hour)); }
+    .w10 { width: calc(10 * var(--hour)); }
+
+    /* Scrollbar (optionnel, “pro”) */
+    .gridWrap::-webkit-scrollbar{ height:12px; width:12px; }
+    .gridWrap::-webkit-scrollbar-thumb{
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+    }
+    .gridWrap::-webkit-scrollbar-track{ background: rgba(0,0,0,.25); }
+
+    /* Responsiveness */
+    @media (max-width: 900px){
+      :root{ --headW: 220px; --hour: 82px; }
+      .kpis{ display:none; }
+      .brand .title small{ display:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="badge">🚚</div>
+        <div class="title">
+          <div>Planning Chauffeurs</div>
+          <small>sap + nintendo (glow + glass)</small>
+        </div>
+      </div>
+
+      <div class="search">
+        <span class="icon">🔎</span>
+        <input placeholder="Rechercher un chauffeur, une mission, une commande…" />
+        <span style="opacity:.7">⌘K</span>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <span class="pix"></span>
+          <div>
+            <div class="num">05</div>
+            <div class="lbl">jours sans retard</div>
+          </div>
+        </div>
+        <div class="kpi">
+          <span class="pix" style="background:var(--ok); box-shadow:var(--glowOk);"></span>
+          <div>
+            <div class="num">96%</div>
+            <div class="lbl">on-time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="panel">
+        <div class="panelHead">
+          <div class="left">
+            <div class="chip"><span class="dot"></span>Live</div>
+            <div class="chip">Axe 00:00 → 24:00</div>
+            <div class="chip">Glows: ON</div>
+          </div>
+
+          <div id="podBtn" class="btn">✓ Marquer POD reçu</div>
+        </div>
+
+        <div class="gridWrap">
+          <div class="grid">
+
+            <!-- Header timeline -->
+            <div class="timeHeader">
+              <div class="leftCol">Chauffeur</div>
+              <div class="axis">
+                <div class="tick">00:00</div>
+                <div class="tick">01:00</div>
+                <div class="tick">02:00</div>
+                <div class="tick">03:00</div>
+                <div class="tick">04:00</div>
+                <div class="tick">05:00</div>
+                <div class="tick">06:00</div>
+                <div class="tick">07:00</div>
+                <div class="tick">08:00</div>
+                <div class="tick">09:00</div>
+                <div class="tick">10:00</div>
+                <div class="tick">11:00</div>
+                <div class="tick">12:00</div>
+                <div class="tick">13:00</div>
+                <div class="tick">14:00</div>
+                <div class="tick">15:00</div>
+                <div class="tick">16:00</div>
+                <div class="tick">17:00</div>
+                <div class="tick">18:00</div>
+                <div class="tick">19:00</div>
+                <div class="tick">20:00</div>
+                <div class="tick">21:00</div>
+                <div class="tick">22:00</div>
+                <div class="tick">23:00</div>
+              </div>
+            </div>
+
+            <!-- Row 1 -->
+            <div class="row">
+              <div class="leftCol">
+                <div class="avatar">🧑‍🚚</div>
+                <div class="driverInfo">
+                  <div class="name">L. Dubois</div>
+                  <div class="meta">
+                    <span class="pillMini"><span class="sq ok"></span>OK</span>
+                    <span class="pillMini">VAN-12</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lane">
+                <div class="now"></div>
+
+                <div class="seg ok h1 w7"><span class="label">Mission OK</span></div>
+                <div class="seg pause h8 w4"><span class="label">Pause</span></div>
+                <div class="seg ok h12 w10"><span class="label">Mission</span></div>
+              </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="row">
+              <div class="leftCol">
+                <div class="avatar">👨‍🔧</div>
+                <div class="driverInfo">
+                  <div class="name">M. Petit</div>
+                  <div class="meta">
+                    <span class="pillMini"><span class="sq risk"></span>RISK</span>
+                    <span class="pillMini">BIKE-07</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lane">
+                <div class="now"></div>
+
+                <div class="seg ok h0 w6"><span class="label">Mission OK</span></div>
+
+                <div class="event done h6 w3">TERMINÉ!</div>
+
+                <div class="seg late h9 w7"><span class="label">En retard</span></div>
+                <div class="seg ok h16 w8"><span class="label">Mission</span></div>
+              </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="row">
+              <div class="leftCol">
+                <div class="avatar">🧑‍💼</div>
+                <div class="driverInfo">
+                  <div class="name">A. Karim</div>
+                  <div class="meta">
+                    <span class="pillMini"><span class="sq ok"></span>OK</span>
+                    <span class="pillMini">CAR-03</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lane">
+                <div class="now"></div>
+
+                <div class="seg idle h2 w5"><span class="label">Vide</span></div>
+                <div class="seg pause h7 w4"><span class="label">Pause</span></div>
+                <div class="seg ok h11 w6"><span class="label">Mission</span></div>
+              </div>
+            </div>
+
+            <!-- Row 4 -->
+            <div class="row">
+              <div class="leftCol">
+                <div class="avatar">🧑‍🎤</div>
+                <div class="driverInfo">
+                  <div class="name">S. Martin</div>
+                  <div class="meta">
+                    <span class="pillMini"><span class="sq late"></span>LATE</span>
+                    <span class="pillMini">VAN-08</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lane">
+                <div class="now"></div>
+
+                <div class="seg idle h1 w3"><span class="label">Vide</span></div>
+                <div class="seg pause h4 w4"><span class="label">Pause</span></div>
+                <div class="seg late h8 w8"><span class="label">En retard</span></div>
+                <div class="seg late h17 w4"><span class="label">Late</span></div>
+              </div>
+            </div>
+
+          </div><!-- /grid -->
+        </div><!-- /gridWrap -->
+      </div><!-- /panel -->
+    </div><!-- /content -->
+  </div><!-- /app -->
+
+  <script>
+    // Démo micro-feedback (particules) sur un bouton
+    const btn = document.getElementById('podBtn');
+    btn.addEventListener('click', () => {
+      btn.classList.remove('pop');
+      void btn.offsetWidth; // restart animation
+      btn.classList.add('pop');
+    });
+  </script>
+</body>
+</html>

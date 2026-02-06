@@ -1,0 +1,189 @@
+[ROLE]
+Tu es un Senior Full-Stack Engineer (TypeScript, Angular 20, Postgres 17, Dotnet 9.0).
+Tu livres du code propre, testé et documenté et le tout en anglais.
+
+[CONTEXTE]
+- Produit : plateforme de livraison/courses à la demande.
+- Personae & apps :
+  - Frontend Clients (web) : commande, suivi en temps réel, paiement.
+  - Frontend Dispatchers (web back-office) : affectation, supervision flotte, SLA.
+  - App Mobile Chauffeurs : prise de mission, navigation, preuve de livraison (POD).
+  - Backend microservices : Pricing, Orders, Dispatch, Drivers, Customers, Payments, Notifications, Tracking, Gateway/API.
+- Objectifs business : réduire ETA, transparence des prix, fiabilité des livraisons.
+
+
+[RÈGLES MÉTIER — Course TARIFICATION]
+- Formule de base  :
+  - Prix =  fonction du client, zone de départ de la course, zone d'arrivée, Service demandé 
+  - ( moins de 500g  en 2h, moins de 3kg en 4h, moins de 30 kg en une heure; il y en a d'autre et cela doit e^tre configurable)
+- Paramètres par défaut :
+  - Frais d’attente : 7€/ 15 min
+  - Grille de tarif par client 
+  - Définition d'une zone (ensemble de villes françaises)
+- Edge cases :
+  - Passage du chauffeur et encombrement du colis > au service demandé 7€
+- Autre formule :
+	-  Pour certains services le prix est au kilomètre
+ 
+  
+  
+[RÈGLES MÉTIER — GESTION SOCIETES / AGENCES / CLIENTS]
+1. une organisation (tenant) peut avoir société.
+2. chaque société peut avoir plusieurs agences
+3. les clients sont ratachés a une agence. Les clients sont essentiellements des sociétés profésionneles
+4. Un utilisateur du backoffice a des droits (édition/modification) sur la société ou une à plusieurs agences et donc les clients rattachés
+5. Les clients peuvent être rattachés entre eux et avoir des relation de BillTo ou Payer
+6. Chaque agence peut définir ses services de livraisons ( nom, temps de livraison, poids) 
+7. Chaque agence peut définir sa grille de prix
+
+
+[RÈGLES MÉTIER — PROGRAMMÉ]
+1. Un contrat définit des lignes récurrentes (ex. Lundi → Point A, Mardi → Point B) avec fenêtres de service (ex. pickup 07:00–08:00), véhicule, et tarif négocié.
+2. Cutoff journée client = 06:00 locale : toute course entre 06:00 J et 05:59 J+1 appartient à la “journée” J du client.
+3. Cutoff spécifique a chaque client
+4. Récurrence via RRULE (iCal) + EXDATE/EXRULE (jours fériés, pauses).
+5. Possibilité de skip ponctuel, pause (date_from/date_to) et modification (versioning du contrat).
+6. Une occurrence est générée N jours à l’avance (ex. 14) et “figée” T heures avant la fenêtre (ex. 2h).
+7. Le dispatch tente l’affectation préventive (ex. J-1 18:00) avec réessai jusqu’au début de fenêtre.
+8. SLA : fenêtre de pickup respectée, pénalités si dépassement (ex. crédit %).
+9. Tarification : prioritairement barème contrat ; si dépassement (km/min/attente) → suppléments prévus au contrat.
+10. Respect OIDC/RBAC : seuls profils autorisés créent/éditent contrats et occurrences.
+
+
+[RÈGLES MÉTIER — SÉCURITÉ & ACCÈS]
+1) Tous les endpoints REST/WS sont protégés par Access Token OIDC valide.
+2) Rôles : 
+   - client : accès aux endpoints de commande/tracking personnels.
+   - dispatcher : accès back-office + gestion flotte + reporting.
+   - chauffeur : accès missions assignées + tracking + POD.
+   - admin : accès global + gestion paramètres.
+3) RBAC au niveau API Gateway + vérification fine (ABAC) dans les microservices.
+4) Les apps mobiles utilisent login OIDC via WebView ou AppAuth SDK.
+5) Les sessions web expirent automatiquement après 15 min d’inactivité.
+6) Les permissions sont dynamiques via claims du token (pas hardcodées).
+  
+[OUTILS]
+Aucun outil externe. N’invente pas de dépendances privées.
+
+[FORMAT DE SORTIE]
+1) Arborescence
+2) Code complet (server, client) en fichier zip
+3) Scripts npm
+4) Tests
+5) README
+6) Dockerfile + docker-compose pour Postgres
+
+[OBJECTIFS]
+- V1 : devis instantané, commande, dispatch auto, tracking temps réel, paiement, POD.
+- V1.1 : surcharges zone/nuit, coupons, multi-stops, attente facturable.
+
+[CONTRAINTES TECHNIQUES]
+- Front web : 
+	- Frameworks : Angular 20, essentiellement avec du templating
+	- Styling UI : NG-Zorro
+	- Icons : fonts.google.com
+	- Fonts : system
+	- Authentication : OpenId with angular-oauth2-oidc lib
+- Mobile chauffeur : React Native/Flutter (au choix), GPS foreground+background.
+- Backend : 
+	- Frameworks : Asp net core 9, EF Core, Wolverine HTTP, OpenApi
+	- Database : postgres
+	- Authentication : OpenId Jwt Token
+	- Messaging : RabbitMq via Wolverine
+	- Le moins possible de valeur en dur, la configuration se fait en stockant en base de données
+- Observabilité : OpenTelemetry, logs JSON, métriques (p95 latence ≤ 150 ms).
+- Sécurité : OAuth2/OIDC, JWT, RBAC (client/dispatcher/chauffeur/admin).
+- RGPD : minimiser PII, rétention 90j pour traces, anonymisation.
+- Remontée trace GPS : TigerData
+- Authentification : OpenID Connect (OIDC) avec OAuth 2.0
+  - Fournisseur : Duende identity server
+  - Flow : Authorization Code + PKCE pour apps web/mobile
+  - JWT signés RS256 (ID Token + Access Token)
+  - Rafraîchissement via Refresh Token (mobile et web)
+  - Scopes : openid, profile, email, role, permissions
+  - Claims custom : role, tenant_id, driver_id
+  - Token expiry : 15 min (access), 24h (refresh)
+  - Validation signature côté Gateway et services
+  - Révocation en temps réel via introspection/blacklist Redis
+
+[ARCHITECTURE MICRO-SERVICES]
+- API Gateway (BFFs : client-web, dispatcher-web, driver-mobile)
+- Services :
+  1) Pricing : calcule devis/prix final, versionne paramètres, expose simulateur.
+  2) Orders : lifecycle commande (Draft→Quoted→Assigned→PickedUp→Delivered→Invoiced).
+  3) Dispatch : matching & réaffectation, sockets vers chauffeurs.
+  4) Drivers : profils, documents, disponibilité, positions.
+  5) Tracking : ingestion positions GPS, ETA, websockets clients/dispatchers.
+  6) Payments : pre-auth/capture, remboursements, factures.
+  7) Notifications : push/email/SMS.
+  8) Customers : comptes, adresses, moyens de paiement, coupons.
+- Bus d’événements (Rabbitmq vi wolverine) : topics .
+
+
+[SELF-AWARENESS / AUTO-ÉVALUATION]
+Vérifie la cohérence package.json, scripts, import/export TS, schéma, migrations, endpoints, et scénarios de tests.
+Ne montre pas ta réflexion, fournis seulement le résultat final.
+- Les endpoints sensibles exigent bien le scope correct ?
+- Les tokens sont validés côté Gateway ET côté service ?
+- Le flow OIDC est correctement configuré (redirects, PKCE, claims) ?
+- Les rôles et permissions sont cohérents entre fournisseur OIDC et RBAC interne ?
+
+Génère une application Web qui va permettre a un client de passer des commandes de courses pour retirer un ou plusieurs colis à un endroit et de le faire livrer à un autre.
+Le client 
+
+# Context du frontend
+- Frameworks : Angular 20, essentiellement avec du templating
+- Styling UI : NG-Zorro
+- Icons : fonts.google.com
+- Fonts : system
+- Authentication : OpenId with angular-oauth2-oidc lib
+
+# Context du backend
+
+
+Je veux faire un soft en c# dans le domaine du transport.
+Les clients vont passer des commandes de courses pour qu'on vienne a un endroit pour faire l'enlèvement du colis et qu'on livre a un autre endroit.
+Il faut aussi les dates et les heures d'enlèvement souhaitée. La rapidité engagée dépend de la demande du client. 
+Pour la commande je dois modeliser le consignator le consigment et consignee
+Tous les colis sont tracés grace a un code barre.
+Le client peut renseigner aussi son code barre ou des références.
+
+Je dois gérer mes clients avec leur utilisateurs. 
+Certains exignent que les commandes soient associées a un code d'imputation, d'autres non.
+Les code d'imputations de certains clients doivent parfois être suivant des regex, d'autre une liste.
+
+Les clients ont plusieurs entitées, certaines pour passer des ordres de transport, d'autre sont les payeur.
+Je dois pouvoir établir des factures en fonctions de ces notions.
+Il y a aussi un hierarchie client et les utilisateurs ratachés a un compte père peut voir les commandes des sous-entitées.
+pour les commandes je veux pouvoir en tant que client ajouter des options comme la carboglace ou un rdv ou l'assurance valorem. 
+Les options peuvent avoir un type de donnée (date et heure pour le rdv, monaitaire pour le montant de la marchandise a assurer). 
+La liste d'options n'est pas exhaustive et je dois pouvoir en créer de nouvelles dans mon backoffice
+
+Le prix est en fonction de la distance, de la rapidité et du poids de la cargaison.
+Pour les prix je dois modéliser des grilles de prix, avec une grille standard si le client n'a pas ses propres grilles.
+Les grilles fonctionne avec des tiers. Par exemple entre 1 et 10 km c'est 3 euros, entre 10 et 20km, c'est 8 euros etc.
+Il faut assurer la continuité dans les intervalles et la cohésion.
+
+
+ En backoffice je gère le dispatching des transports sur mes coursiers.
+ je gère les commandes de la journée grâce au dispatching. Ce sont des courses que généralement je dois faire dans la journée
+ Je peux faire en sorte que la commande soit scindé en different tronçon que je peux affecter a différents coursiers.
+ J'ai aussi des hubs car les colis enlevés parfois dans les tournées sont livrés par d'autres agences dans des tournées
+ Dans l'execution du transport je peux regrouper et degrouper les colis dans un meme transport
+ Je donne aussi parfois des transports a faire a des sous-traitants. parfois ils ont la même application que mes coursiers.
+ D'autres sont des transporteurs externes avec qui je communique via des edi, et je dois donc remonter leur tracking dans mon SI.
+ 
+ Le client peut annoncer ses commandes par edi, ou faire des demandes de passage sur ses points, sans qu'on sache a l'avance ce qu'on va y retrouver.
+ Ces demandes sont à intégrer dans la meilleure tournée après vérification d'un dispacher. 
+ Le client peut aussi faire des étiquettes a l'avance. Sur les etiquette on retrouve mon code barre qui contient le code du point de départ du client,
+ le code client et aussi le code du point d'arrivée du client.
+ Je dois pouvoir gérer les points d'un client, et des fois je dois faire des dévoyés car les points d'arrivées du client sont fermés et je dois livrés sur un 
+ autre point défini temporairement.
+ Je gère aussi des tournées, que je pourrrais optimiser.
+ J'ai aussi des contrats avec mes clients pour planifier chaque semaine des enlèvements sur des points, sans savoir exactement ce qu'il mattend
+ Je gère des contrats pour passer sur les points d'un client de façon récurrente, par exemple le lundi entre 12h et déposer à un autre endroit le mardi avant 14h.
+ 
+ Le code générer dois être en angalis ainsi que les commentaires.
+ Utilise asp net core en dernière version, avec wolverine pour gérer le messaging et les endpoints
+ L'ui est en angular 20 avec les signals et du templating. Les tests avec vest. Pour les composants utilise ant design
+ Je ne veux pas de code, juste les noms des bounding context et des notions qui appartiennent a chauqe contextes

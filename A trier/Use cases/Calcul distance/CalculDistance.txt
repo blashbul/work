@@ -1,0 +1,27 @@
+      public static double CalculDistance(double? baseLatitude, double? baseLongitude, double? latitude, double? longitude)
+        {
+            //double __a = Math.PI / 180;
+            //double __lat1 = (latitude ?? 0) * __a;
+            //double __lat2 = (baseLatitude ?? 0) * __a;
+            //double __lon1 = (longitude ?? 0) * __a;
+            //double __lon2 = (baseLongitude ?? 0) * __a;
+            //double __t5 = (Math.Sin(__lat1) * Math.Sin(__lat2)) + ((Math.Cos(__lat1) * Math.Cos(__lat2)) * Math.Cos(__lon1 - __lon2));
+            //double __rad_dist = Math.Atan(-__t5 / Math.Sqrt(-__t5 * __t5 + 1)) + 2 * Math.Atan(1);
+            //return __rad_dist;
+
+            var R = 6372.8; // In kilometers
+            var dLat = toRadians((latitude ?? 0) - (baseLatitude ?? 0));
+            var dLon = toRadians((longitude ?? 0) - (baseLongitude ?? 0));
+            var lat1 = toRadians((baseLatitude ?? 0));
+            var lat2 = toRadians((latitude ?? 0));
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) + Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(lat1) * Math.Cos(lat2);
+            var c = 2 * Math.Asin(Math.Sqrt(a));
+            return R * 2 * Math.Asin(Math.Sqrt(a));
+        }
+
+ 
+        public static double toRadians(double angle)
+        {
+            return Math.PI * angle / 180.0;
+        }

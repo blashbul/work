@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dispatch – Timeline Coursiers</title>
+
+<style>
+:root{
+  --name-col: 260px;
+  --hour-w: 92px;          /* largeur d'1h */
+  --hours: 24;
+  --row-h: 82px;
+
+  --bg: #070a14;
+  --panel: rgba(255,255,255,.06);
+  --panel2: rgba(255,255,255,.04);
+  --stroke: rgba(255,255,255,.10);
+  --grid: rgba(255,255,255,.08);
+
+  --text: #e9edf7;
+  --muted: rgba(233,237,247,.65);
+
+  --violet: #7c3aed;
+  --violet2: #a78bfa;
+
+  --shadow: 0 16px 40px rgba(0,0,0,.55);
+  --r-xl: 18px;
+  --r-lg: 14px;
+}
+
+/* ---- base ---- */
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 600px at 30% 10%, rgba(124,58,237,.25), transparent 55%),
+    radial-gradient(900px 500px at 80% 35%, rgba(167,139,250,.18), transparent 55%),
+    linear-gradient(180deg, #060816, #050713);
+}
+
+/* ---- shell ---- */
+.shell{
+  max-width: 1200px;
+  margin: 18px auto;
+  padding: 14px;
+}
+
+/* ---- top bar ---- */
+.topbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding: 10px 12px;
+  border-radius: var(--r-xl);
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow);
+}
+
+.chip{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--stroke);
+  color: var(--text);
+  min-width: 160px;
+}
+.chip .muted{ color: var(--muted); font-weight:700; }
+.search{
+  flex: 1 1 auto;
+  min-width: 260px;
+}
+.search input{
+  width:100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  background: rgba(0,0,0,.25);
+  color: var(--text);
+  outline: none;
+}
+.search input::placeholder{ color: rgba(233,237,247,.45); }
+
+/* ---- board ---- */
+.board{
+  margin-top: 12px;
+  border-radius: 22px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* wrapper scroll: vertical + horizontal */
+.scroller{
+  height: 560px;
+  overflow: auto;
+  position: relative;
+}
+
+/* ---- header heures sticky ---- */
+.header{
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display:flex;
+  background: rgba(6,8,22,.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--stroke);
+}
+
+.header .left{
+  width: var(--name-col);
+  flex: 0 0 auto;
+  border-right: 1px solid var(--stroke);
+  background: rgba(255,255,255,.03);
+}
+.header .hours{
+  display:flex;
+  width: calc(var(--hour-w) * var(--hours));
+  flex: 0 0 auto;
+}
+.hour{
+  width: var(--hour-w);
+  padding: 14px 10px;
+  font-weight: 900;
+  color: rgba(233,237,247,.82);
+  border-left: 1px solid var(--grid);
+}
+
+/* ---- rows ---- */
+.rows{ position: relative; }
+
+.row{
+  display:flex;
+  min-height: var(--row-h);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+/* sticky driver column */
+.driver{
+  position: sticky;
+  left: 0;
+  z-index: 15;
+  width: var(--name-col);
+  flex: 0 0 auto;
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(10,12,28,.90);
+  backdrop-filter: blur(8px);
+  border-right: 1px solid var(--stroke);
+}
+.avatar{
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+  border: 1px solid rgba(255,255,255,.12);
+  display:grid;
+  place-items:center;
+  font-weight: 900;
+}
+.dmeta{ min-width:0; }
+.dmeta .name{ font-weight: 950; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 150px; }
+.dmeta .sub{ font-size:12px; color: var(--muted); font-weight:700; }
+
+/* track timeline area */
+.track{
+  position: relative;
+  width: calc(var(--hour-w) * var(--hours));
+  flex: 0 0 auto;
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc(var(--hour-w) - 1px),
+      var(--grid) calc(var(--hour-w) - 1px),
+      var(--grid) var(--hour-w)
+    );
+}
+
+/* now vertical line across all rows */
+.now-line{
+  position:absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(11.2 * var(--hour-w)); /* 11:12 */
+  width:0;
+  border-left: 3px dashed var(--violet);
+  z-index: 12;
+  pointer-events:none;
+}
+
+/* now badge fixed to bottom (in scroller coords) */
+.now-badge{
+  position: sticky;
+  bottom: 12px;
+  z-index: 25;
+  margin-left: calc(var(--name-col) + 11.2 * var(--hour-w));
+  display:inline-block;
+  background: var(--violet);
+  color: #fff;
+  font-weight: 950;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  box-shadow: 0 14px 28px rgba(124,58,237,.30);
+}
+
+/* ---- blocks ---- */
+.block{
+  position:absolute;
+  top: 12px;
+  height: 54px;
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  white-space: nowrap;
+  overflow:hidden;
+  text-overflow: ellipsis;
+}
+
+.block .ico{
+  width: 30px;
+  height: 30px;
+  border-radius: 12px;
+  display:grid;
+  place-items:center;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.18);
+  flex: 0 0 auto;
+}
+
+.block .txt{
+  min-width:0;
+  font-weight: 900;
+  color: rgba(233,237,247,.92);
+}
+.block .txt .time{
+  color: rgba(233,237,247,.70);
+  font-weight: 900;
+  margin-right: 10px;
+}
+
+/* variants */
+.b-violet{ background: linear-gradient(180deg, rgba(124,58,237,.26), rgba(124,58,237,.12)); }
+.b-blue  { background: linear-gradient(180deg, rgba(56,189,248,.18), rgba(56,189,248,.08)); }
+.b-olive { background: linear-gradient(180deg, rgba(163,230,53,.14), rgba(163,230,53,.06)); }
+.b-amber { background: linear-gradient(180deg, rgba(251,191,36,.16), rgba(251,191,36,.07)); }
+.b-red   { background: linear-gradient(180deg, rgba(244,63,94,.22), rgba(244,63,94,.10)); }
+
+.is-dashed{ border-style: dashed; }
+.is-done{ opacity:.55; }
+
+/* block position helper:
+   left = hours * hourWidth, width = durationHours * hourWidth */
+.pos-08_05 { left: calc(8.0833 * var(--hour-w)); width: calc(1.60 * var(--hour-w)); } /* 08:05 → ~09:41 */
+.pos-09_45 { left: calc(9.75   * var(--hour-w)); width: calc(1.55 * var(--hour-w)); }
+.pos-10_50 { left: calc(10.8333* var(--hour-w)); width: calc(1.10 * var(--hour-w)); }
+.pos-11_45 { left: calc(11.75  * var(--hour-w)); width: calc(2.50 * var(--hour-w)); }
+.pos-08_45 { left: calc(8.75   * var(--hour-w)); width: calc(1.40 * var(--hour-w)); }
+.pos-08_50 { left: calc(8.8333 * var(--hour-w)); width: calc(3.30 * var(--hour-w)); }
+.pos-11_45_red { left: calc(11.75 * var(--hour-w)); width: calc(2.20 * var(--hour-w)); }
+
+/* ---- message bubble overlay ---- */
+.bubble{
+  position: absolute;
+  left: calc(var(--name-col) + 12.0 * var(--hour-w));
+  top: calc(2 * var(--row-h) + 105px); /* tombe à peu près comme l'exemple */
+  transform: translateX(-50%);
+  width: 520px;
+  max-width: 70vw;
+  z-index: 30;
+  pointer-events:none;
+}
+.bubble-inner{
+  background: rgba(255,255,255,.92);
+  color: #0b1020;
+  border: 5px solid var(--violet);
+  border-radius: 28px;
+  padding: 16px 18px;
+  display:flex;
+  gap:14px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.35);
+}
+.bubble-icon{
+  width: 44px; height: 44px;
+  border-radius: 16px;
+  display:grid; place-items:center;
+  background: #dcfce7;
+  flex: 0 0 auto;
+  font-size: 22px;
+}
+.bubble-body{ min-width:0; flex:1; }
+.bubble-title{ font-weight: 950; font-size: 18px; margin-bottom: 2px; }
+.bubble-text{ font-weight: 750; line-height: 1.25; opacity:.92; }
+.bubble-time{ font-weight: 900; color: rgba(11,16,32,.70); white-space:nowrap; }
+
+/* ---- legend ---- */
+.legend{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  padding: 12px 14px;
+  border-top: 1px solid var(--stroke);
+  background: rgba(255,255,255,.03);
+}
+.dot{
+  width:10px; height:10px; border-radius:999px;
+  display:inline-block; margin-right:8px;
+}
+.d-violet{ background: var(--violet); }
+.d-blue{ background: #38bdf8; }
+.d-green{ background: #a3e635; }
+.d-amber{ background: #fbbf24; }
+.d-red{ background: #fb7185; }
+.legend span{ color: rgba(233,237,247,.80); font-weight:800; }
+
+</style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="chip">📅 <span style="font-weight:950">22/04/2024</span></div>
+      <div class="chip">👥 <span style="font-weight:950">Tous les coursiers</span></div>
+      <div class="chip">⚡ <span style="font-weight:950">Statut : Actifs</span></div>
+      <div class="search">
+        <input placeholder="Rechercher un coursier ou une adresse" />
+      </div>
+      <div class="chip" style="min-width:auto">🔄</div>
+      <div class="chip" style="min-width:auto">🔔 <span class="muted">4</span></div>
+    </div>
+
+    <div class="board">
+      <div class="scroller">
+
+        <!-- sticky header hours -->
+        <div class="header">
+          <div class="left"></div>
+          <div class="hours">
+            <div class="hour">00:00</div><div class="hour">01:00</div><div class="hour">02:00</div><div class="hour">03:00</div>
+            <div class="hour">04:00</div><div class="hour">05:00</div><div class="hour">06:00</div><div class="hour">07:00</div>
+            <div class="hour">08:00</div><div class="hour">09:00</div><div class="hour">10:00</div><div class="hour">11:00</div>
+            <div class="hour">12:00</div><div class="hour">13:00</div><div class="hour">14:00</div><div class="hour">15:00</div>
+            <div class="hour">16:00</div><div class="hour">17:00</div><div class="hour">18:00</div><div class="hour">19:00</div>
+            <div class="hour">20:00</div><div class="hour">21:00</div><div class="hour">22:00</div><div class="hour">23:00</div>
+          </div>
+        </div>
+
+        <div class="rows">
+          <!-- Now line across rows -->
+          <div class="now-line"></div>
+
+          <!-- Row 1 -->
+          <div class="row">
+            <div class="driver">
+              <div class="avatar">JM</div>
+              <div class="dmeta">
+                <div class="name">John Martin</div>
+                <div class="sub">En route • 3 / 6</div>
+              </div>
+            </div>
+            <div class="track">
+              <div class="block b-violet pos-08_05">
+                <div class="ico">🔧</div>
+                <div class="txt"><span class="time">08:05</span>421 Maple Hollow Ln, Redwood City</div>
+              </div>
+
+              <div class="block b-violet pos-09_45" style="top: 18px; opacity:.92; transform: translateY(50px);">
+                <div class="ico">⚡</div>
+                <div class="txt"><span class="time">09:45</span>Silver Peak St</div>
+              </div>
+
+              <div class="block b-violet pos-10_50" style="top: 18px; transform: translateY(108px); opacity:.9;">
+                <div class="ico">🚗</div>
+                <div class="txt"><span class="time">10:50</span>State Route 217</div>
+              </div>
+
+              <div class="block b-amber pos-11_45 is-dashed" style="top: 18px; transform: translateY(108px);">
+                <div class="ico">🚕</div>
+                <div class="txt"><span class="time">11:45</span>State Route</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="row">
+            <div class="driver">
+              <div class="avatar">SB</div>
+              <div class="dmeta">
+                <div class="name">Sophie Bernard</div>
+                <div class="sub">Sur place • 1 / 2</div>
+              </div>
+            </div>
+            <div class="track">
+              <div class="block b-blue pos-08_45">
+                <div class="ico">🧾</div>
+                <div class="txt"><span class="time">08:45</span>Silver Peak St</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="row">
+            <div class="driver">
+              <div class="avatar">AD</div>
+              <div class="dmeta">
+                <div class="name">Alex Dupont</div>
+                <div class="sub">En route • 3 / 4</div>
+              </div>
+            </div>
+            <div class="track">
+              <div class="block b-olive pos-08_45">
+                <div class="ico">🔒</div>
+                <div class="txt"><span class="time">08:45</span>308 Silver Peak St</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="row">
+            <div class="driver">
+              <div class="avatar">VL</div>
+              <div class="dmeta">
+                <div class="name">Vincent Lefevre</div>
+                <div class="sub">Prévu • 3 / 4</div>
+              </div>
+            </div>
+            <div class="track">
+              <div class="block b-amber pos-08_50">
+                <div class="ico">⚠️</div>
+                <div class="txt"><span class="time">08:50</span>Coral Reef Way</div>
+              </div>
+
+              <div class="block b-red pos-11_45_red is-dashed" style="top: 12px; transform: translateY(50px);">
+                <div class="ico">🚗</div>
+                <div class="txt"><span class="time">11:45</span>En retard • Crevaison en chemin !</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- message bubble overlay -->
+          <div class="bubble">
+            <div class="bubble-inner">
+              <div class="bubble-icon">💬</div>
+              <div class="bubble-body">
+                <div class="bubble-title">John</div>
+                <div class="bubble-text">
+                  Argh!! ran a flat tire on State Route 217…<br>
+                  Won’t make it to my next stop in time.
+                </div>
+              </div>
+              <div class="bubble-time">11:12 AM</div>
+            </div>
+          </div>
+
+          <!-- bottom now badge -->
+          <div class="now-badge">11:12:42</div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i class="dot d-amber"></i>Prévu</span>
+        <span><i class="dot d-violet"></i>En route</span>
+        <span><i class="dot d-green"></i>Sur place</span>
+        <span><i class="dot d-blue"></i>Terminé</span>
+        <span><i class="dot d-red"></i>En retard / Incident</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

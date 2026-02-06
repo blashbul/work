@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pixel Avatar Generator</title>
+  <style>
+    :root{
+      --bg:#050b18;
+      --panel:#0b1a38;
+      --stroke:#2a5cff;
+      --text:#d6f2ff;
+    }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(700px 380px at 20% 20%, rgba(70,140,255,.22), transparent 60%),
+                  linear-gradient(180deg, #04070d, #071126);
+      color:var(--text);
+      display:flex;
+      justify-content:center;
+      padding:24px;
+    }
+    .app{
+      width:min(980px, 96vw);
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:16px;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(20,60,160,.20), rgba(12,24,56,.72));
+      border:1px solid rgba(42,92,255,.35);
+      border-radius:10px;
+      box-shadow: 0 0 18px rgba(42,92,255,.22);
+      padding:14px;
+    }
+    h1{ font-size:16px; margin:0 0 10px; letter-spacing:.2px; }
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .row + .row{ margin-top:10px; }
+
+    label{ font-size:12px; color: rgba(214,242,255,.85); }
+    input[type="text"], select{
+      background: rgba(6,14,34,.75);
+      color: var(--text);
+      border:1px solid rgba(42,92,255,.25);
+      border-radius:8px;
+      padding:10px 12px;
+      outline:none;
+      min-width: 180px;
+    }
+    button{
+      border:1px solid rgba(255,255,255,.18);
+      background: linear-gradient(180deg, rgba(42,92,255,.35), rgba(10,20,52,.55));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+      box-shadow: 0 0 12px rgba(42,92,255,.18);
+    }
+    button:hover{ filter: brightness(1.08); }
+    .muted{ opacity:.8; font-size:12px; }
+
+    .preview{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height: 420px;
+      position:relative;
+      overflow:hidden;
+    }
+    .glow{
+      position:absolute; inset:-80px;
+      background: radial-gradient(circle at 35% 25%, rgba(0,255,160,.12), transparent 55%),
+                  radial-gradient(circle at 70% 70%, rgba(255,211,58,.08), transparent 60%),
+                  radial-gradient(circle at 50% 50%, rgba(42,92,255,.18), transparent 60%);
+      filter: blur(0px);
+      pointer-events:none;
+    }
+
+    /* Canvas wrapper pixel look */
+    .frame{
+      width: 220px;
+      height: 220px;
+      border-radius:12px;
+      border:1px solid rgba(42,92,255,.35);
+      box-shadow: 0 0 18px rgba(42,92,255,.22), inset 0 0 0 2px rgba(0,0,0,.35);
+      background: rgba(5,10,22,.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+    .frame:after{
+      content:"";
+      position:absolute; inset:0;
+      background: repeating-linear-gradient(to bottom,
+        rgba(255,255,255,.05) 0px,
+        rgba(255,255,255,.05) 1px,
+        transparent 2px,
+        transparent 4px
+      );
+      opacity:.35;
+      pointer-events:none;
+      border-radius:12px;
+      mix-blend-mode: overlay;
+    }
+    canvas{
+      width: 180px;
+      height: 180px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      border-radius:10px;
+      box-shadow: 0 0 16px rgba(42,92,255,.18);
+      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.06), transparent 55%),
+                  linear-gradient(180deg, rgba(8,16,40,.55), rgba(6,14,34,.65));
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .pill{
+      border:1px solid rgba(42,92,255,.20);
+      background: rgba(6,14,34,.55);
+      border-radius:10px;
+      padding:10px 12px;
+    }
+    .pill b{ font-size:12px; display:block; margin-bottom:6px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <h1>Générateur d’avatar pixel</h1>
+
+      <div class="row">
+        <div>
+          <label>Seed (ex: ID chauffeur / nom)</label><br/>
+          <input id="seed" type="text" value="L. Dubois" />
+        </div>
+        <button id="btnApply">Appliquer</button>
+      </div>
+
+      <div class="row">
+        <button id="btnRandom">Random</button>
+        <button id="btnExport">Exporter PNG</button>
+        <span class="muted">Même seed = même avatar</span>
+      </div>
+
+      <div class="grid">
+        <div class="pill">
+          <b>Style</b>
+          <label>Cheveux</label><br/>
+          <select id="hair"></select>
+        </div>
+        <div class="pill">
+          <b>Tenue</b>
+          <label>Uniforme</label><br/>
+          <select id="outfit"></select>
+        </div>
+        <div class="pill">
+          <b>Accessoire</b>
+          <label>Casquette / casque</label><br/>
+          <select id="headgear"></select>
+        </div>
+        <div class="pill">
+          <b>Variation</b>
+          <label>Expression</label><br/>
+          <select id="face"></select>
+        </div>
+      </div>
+
+      <p class="muted" style="margin-top:12px">
+        Astuce: utilise un ID stable (Guid / driverId) en seed pour que l’avatar reste identique partout (planning, carte, détail).
+      </p>
+    </div>
+
+    <div class="card preview">
+      <div class="glow"></div>
+      <div class="frame">
+        <canvas id="c" width="48" height="48"></canvas>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========================
+   Seeded RNG (stable)
+   ========================= */
+function xmur3(str){
+  let h = 1779033703 ^ str.length;
+  for (let i=0; i<str.length; i++){
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return function(){
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return (h ^= h >>> 16) >>> 0;
+  };
+}
+function mulberry32(a){
+  return function(){
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function rngFromSeed(seed){
+  const seedFn = xmur3(seed);
+  return mulberry32(seedFn());
+}
+function pick(rng, arr){ return arr[Math.floor(rng()*arr.length)]; }
+
+/* =========================
+   Pixel drawing helpers
+   ========================= */
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+
+function px(x,y,w,h,color){
+  ctx.fillStyle = color;
+  ctx.fillRect(x,y,w,h);
+}
+function outlineRect(x,y,w,h,color){
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x+0.5,y+0.5,w-1,h-1);
+}
+
+/* =========================
+   Parts (palette + shapes)
+   48x48 avatar, "head + shoulders"
+   ========================= */
+const SKINS = ["#ffd7b1","#f7c59f","#e7a97f","#c98a5e","#8d5a3a"];
+const HAIR_COLORS = ["#2b1a12","#3a2418","#5a3a22","#1a1a1a","#7c4b2a","#d7b17a"];
+const OUTFITS = [
+  {name:"Bleu",  main:"#1f6bff", shade:"#123b9e", accent:"#22c8ff"},
+  {name:"Vert",  main:"#22ff66", shade:"#0d8a3a", accent:"#0b1a38"},
+  {name:"Rouge", main:"#ff3a3a", shade:"#9b0f2a", accent:"#ffd33a"},
+  {name:"Orange",main:"#ff8a00", shade:"#9b4d00", accent:"#ffd33a"},
+];
+const HAIR_STYLES = [
+  {name:"Court", type:"short"},
+  {name:"Brosse", type:"buzz"},
+  {name:"Houppe", type:"quiff"},
+  {name:"Long", type:"long"},
+];
+const HEADGEAR = [
+  {name:"Aucun", type:"none"},
+  {name:"Casquette", type:"cap"},
+  {name:"Casque", type:"helmet"},
+];
+const FACES = [
+  {name:"Neutre", type:"neutral"},
+  {name:"Sourire", type:"smile"},
+  {name:"Sérieux", type:"serious"},
+];
+
+function drawAvatar(opts){
+  ctx.clearRect(0,0,48,48);
+
+  // background subtle
+  px(0,0,48,48,"rgba(10,25,60,.35)");
+  // stars-ish pixels
+  [["#ffffff22",6,8],["#ffffff1a",39,10],["#ffffff22",30,36],["#ffffff1a",10,30]].forEach(s=>px(s[1],s[2],1,1,s[0]));
+
+  // shoulders / torso
+  const outfit = opts.outfit;
+  px(14,26,20,18,outfit.main);
+  px(14,26,20,2,outfit.accent);
+  px(14,42,20,2,outfit.shade);
+  px(12,28,2,14,outfit.shade);
+  px(34,28,2,14,outfit.shade);
+
+  // neck
+  px(22,24,4,4,opts.skin);
+
+  // head base
+  px(16,10,16,16,opts.skin);
+  // head shading
+  px(16,10,2,16,shade(opts.skin,-18));
+  px(30,10,2,16,shade(opts.skin,-10));
+  px(16,24,16,2,shade(opts.skin,-10));
+
+  // ears
+  px(14,14,2,6,opts.skin);
+  px(32,14,2,6,opts.skin);
+
+  // hair
+  drawHair(opts.hairStyle, opts.hairColor);
+
+  // headgear
+  drawHeadgear(opts.headgear, outfit);
+
+  // face
+  drawFace(opts.face);
+
+  // border like sprite
+  outlineRect(1,1,46,46,"rgba(42,92,255,.35)");
+}
+
+function drawHair(style, color){
+  const dark = shade(color,-22);
+  if(style==="buzz"){
+    px(16,10,16,5,color);
+    px(16,10,2,8,dark);
+    px(30,10,2,8,dark);
+  } else if(style==="short"){
+    px(16,10,16,6,color);
+    px(18,16,12,2,color);
+    px(16,10,2,10,dark);
+    px(30,10,2,10,dark);
+  } else if(style==="quiff"){
+    px(16,10,16,5,color);
+    px(20,8,10,3,color);
+    px(18,13,14,3,color);
+    px(16,10,2,10,dark);
+    px(30,10,2,10,dark);
+  } else if(style==="long"){
+    px(16,10,16,6,color);
+    px(14,16,2,12,color);
+    px(32,16,2,12,color);
+    px(16,22,16,2,color);
+    px(14,16,2,12,dark);
+    px(32,16,2,12,dark);
+  }
+}
+
+function drawHeadgear(type, outfit){
+  if(type==="none") return;
+  if(type==="cap"){
+    // cap top
+    px(16,9,16,4,shade(outfit.main,-15));
+    px(18,8,12,2,shade(outfit.main,-5));
+    // visor
+    px(20,13,12,2,shade(outfit.main,-25));
+    px(20,15,8,1,shade(outfit.main,-35));
+  } else if(type==="helmet"){
+    px(15,8,18,6,shade(outfit.main,-20));
+    px(14,14,20,4,shade(outfit.main,-30));
+    px(16,18,16,2,shade(outfit.main,-40));
+    // stripe
+    px(23,8,2,12,outfit.accent);
+  }
+}
+
+function drawFace(type){
+  // eyes
+  px(20,16,2,2,"#071126");
+  px(26,16,2,2,"#071126");
+  px(20,17,2,1,"rgba(255,255,255,.2)");
+  px(26,17,2,1,"rgba(255,255,255,.2)");
+
+  // mouth
+  if(type==="neutral"){
+    px(22,21,4,1,"#071126");
+  } else if(type==="smile"){
+    px(21,21,6,1,"#071126");
+    px(21,20,1,1,"#071126");
+    px(26,20,1,1,"#071126");
+  } else if(type==="serious"){
+    px(22,21,4,1,"#071126");
+    px(21,21,1,1,"#071126");
+    px(26,21,1,1,"#071126");
+  }
+
+  // nose pixel
+  px(24,18,1,2, "rgba(0,0,0,.18)");
+}
+
+function shade(hex, amount){
+  const c = hex.replace("#","");
+  const r = Math.max(0, Math.min(255, parseInt(c.slice(0,2),16) + amount));
+  const g = Math.max(0, Math.min(255, parseInt(c.slice(2,4),16) + amount));
+  const b = Math.max(0, Math.min(255, parseInt(c.slice(4,6),16) + amount));
+  return "#" + [r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+
+/* =========================
+   UI wiring
+   ========================= */
+const elSeed = document.getElementById("seed");
+const selHair = document.getElementById("hair");
+const selOutfit = document.getElementById("outfit");
+const selHeadgear = document.getElementById("headgear");
+const selFace = document.getElementById("face");
+
+function fillSelect(select, items, getLabel){
+  select.innerHTML = "";
+  items.forEach((it, idx)=>{
+    const opt = document.createElement("option");
+    opt.value = idx;
+    opt.textContent = getLabel(it);
+    select.appendChild(opt);
+  });
+}
+fillSelect(selHair, HAIR_STYLES, x=>x.name);
+fillSelect(selOutfit, OUTFITS, x=>x.name);
+fillSelect(selHeadgear, HEADGEAR, x=>x.name);
+fillSelect(selFace, FACES, x=>x.name);
+
+function buildFromUI(seedStr){
+  const rng = rngFromSeed(seedStr);
+
+  const skin = pick(rng, SKINS);
+  const hairColor = pick(rng, HAIR_COLORS);
+
+  const hairStyle = HAIR_STYLES[Number(selHair.value)].type;
+  const outfit = OUTFITS[Number(selOutfit.value)];
+  const headgear = HEADGEAR[Number(selHeadgear.value)].type;
+  const face = FACES[Number(selFace.value)].type;
+
+  drawAvatar({ skin, hairColor, hairStyle, outfit, headgear, face });
+}
+
+function randomizeUI(seedStr){
+  const rng = rngFromSeed(seedStr);
+  selHair.value = String(Math.floor(rng()*HAIR_STYLES.length));
+  selOutfit.value = String(Math.floor(rng()*OUTFITS.length));
+  selHeadgear.value = String(Math.floor(rng()*HEADGEAR.length));
+  selFace.value = String(Math.floor(rng()*FACES.length));
+  buildFromUI(seedStr);
+}
+
+document.getElementById("btnApply").addEventListener("click", ()=>{
+  randomizeUI(elSeed.value.trim() || "seed");
+});
+
+document.getElementById("btnRandom").addEventListener("click", ()=>{
+  // new seed random (but still deterministic per seed)
+  const s = "driver-" + Math.random().toString(16).slice(2);
+  elSeed.value = s;
+  randomizeUI(s);
+});
+
+[selHair, selOutfit, selHeadgear, selFace].forEach(el=>{
+  el.addEventListener("change", ()=> buildFromUI(elSeed.value.trim() || "seed"));
+});
+
+document.getElementById("btnExport").addEventListener("click", ()=>{
+  // export as PNG (scaled for clean pixels)
+  const scale = 8;
+  const tmp = document.createElement("canvas");
+  tmp.width = c.width * scale;
+  tmp.height = c.height * scale;
+  const tctx = tmp.getContext("2d");
+  tctx.imageSmoothingEnabled = false;
+  tctx.drawImage(c, 0,0, tmp.width, tmp.height);
+
+  const a = document.createElement("a");
+  a.download = (elSeed.value.trim() || "avatar") + ".png";
+  a.href = tmp.toDataURL("image/png");
+  a.click();
+});
+
+// init
+randomizeUI(elSeed.value);
+</script>
+</body>
+</html>

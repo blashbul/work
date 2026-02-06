@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body style="box-sizing: border-box">
+    <div style="background-color: aqua; margin: 10px">
+      div parent margin 10px
+      <div style="background-color: brown; margin: 20px">
+        div inside margin 20px
+      </div>
+    </div>
+
+    <br />
+    <div style="background-color: aqua; width: 500px; margin: 20px">
+      another div parent with width
+      <div style="background-color: brown; width: 200px; margin-left: -10px">
+        div inside negative left margin
+      </div>
+    </div>
+
+    <div
+      style="
+        background-color: aqua;
+        width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+      "
+    >
+      another div parent with width margin auto left and right to center
+      <div style="background-color: brown; width: 200px; margin-left: -10px">
+        div inside negative left margin
+      </div>
+    </div>
+
+    <br />
+    <div
+      style="background-color: aqua; width: 500px; margin: 20px; padding: 10px"
+    >
+      another div parent with width and 10px padding
+      <div style="background-color: brown; width: 200px; margin-left: -10px">
+        div inside negative left margin
+      </div>
+    </div>
+
+    <br />
+    <div
+      style="background-color: aqua; width: 500px; height: 200px; margin: auto; position: relative;"
+    >
+      another div parent with width margin auto left and right to center
+      <div style="background-color: brown; width: 200px; height: 100%; margin: auto;">
+        div inside negative full margin auto (only center horizontally) height 100%
+      </div>
+    </div>
+  </body>
+</html>

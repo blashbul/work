@@ -1,0 +1,61 @@
+<html>
+  <head></head>
+  <body>
+    <div style="background-color: aqua">
+      div parent
+      <div style="background-color: brown">div inside</div>
+    </div>
+    <br />
+    <div style="background-color: aqua; width: 100px">
+      another div parent with width
+      <div style="background-color: brown; width: 200px">
+        div inside is widther than parent
+      </div>
+    </div>
+    <br />
+    <div style="background-color: aqua; width: 100px; overflow: hidden">
+      another div parent with width with overflow hidden
+      <div style="background-color: brown; width: 200px">
+        div inside is widther than parent
+      </div>
+    </div>
+    <br />
+    <div style="background-color: aqua; width: 100px; height: 150px">
+      another div parent with width and height and long text
+      <div style="background-color: brown; width: 200px">
+        div inside is widther than parent
+      </div>
+    </div>
+    <br />
+    <div style="background-color: aqua; width: 300px; height: 150px">
+      <div style="background-color: brown; width: 200px; float: left">
+        div inside floating left before text
+      </div>
+      another div parent with width and height and long text and long text and
+      long text and long text and long text and long text and long text and long
+      text and long text and long text and long text and long text and long text
+      and long text and long text and long text and long text
+    </div>
+    <br />
+    <div style="background-color: aqua; width: 300px; height: 150px">
+      <div style="background-color: brown; width: 200px; top: 10px; left: 30px; position: relative;">
+        div inside before text with  top and left relative
+      </div>
+      another div parent with width and height and long text and long text and
+      long text and long text and long text and long text and long text and long
+      text and long text and long text and long text and long text and long text
+      and long text and long text and long text and long text
+    </div>
+
+    <br />
+    <div style="background-color: aqua; width: 300px; height: 150px; position: relative;">
+      <div style="background-color: brown; width: 200px; top: 10px; left: 130px; position: absolute;">
+        div inside before text with  top and left relative with stakcing context
+      </div>
+      another div parent with absolute to initiate stack context with width and height and long text and long text and
+      long text and long text and long text and long text and long text and long
+      text and long text and long text and long text and long text and long text
+      and long text and long text and long text and long text
+    </div>
+  </body>
+</html>

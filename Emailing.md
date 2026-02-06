@@ -1,0 +1,3 @@
+# Emailing
+
+Library FluentEmail + templating

@@ -1,0 +1,171 @@
+<html>
+
+<head>
+    <style>
+        html,
+        body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+
+        }
+
+        .over {
+            background-color: rgba(128, 0, 0, 0.5);
+            position: absolute;
+            top: 10%;
+            bottom: 10%;
+            left: 15%;
+            right: 15%;
+            overflow: auto;
+        }
+
+        .over::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: -1;
+            margin: -1px;
+            /* !importanté */
+            border-radius: inherit;
+            /* !importanté */
+            background: linear-gradient(to right, red, orange);
+        }
+
+
+
+        .inner {
+            background-color: blueviolet;
+            position: relative;
+            top: 50px;
+            left: 50px;
+        }
+
+        .div1 {
+            background-color: brown;
+            width: 200px;
+
+        }
+
+        .div2 {
+            background-color: green;
+            width: 200px;
+            /* line-height: 1.5em; */
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+
+        }
+    </style>
+</head>
+
+<body>
+    <div>flux normal et ici <span class="inner">une div avec une position relative de 50 px et 50 px</div>
+    puis le flux reprend de plus belle avec un très long long long long long long long long long long long long
+    long long long long long long long long long long long long long long long long long long long long long long
+    long long long long long long long long long long long long long long long long long long long long long long
+    long long long long long long long long long long long long long long long long long long long long long long
+    long long long long long long long long long long long long long long long long long long long long long long
+    long long long long long long long long
+    long long long long long long long long long long long long long long long long long long long long long long
+    long long
+    long long long long long long long long long long long long long long long long long long long long long long
+    long long long long long long long long long long long long long long long long long long long long long long
+    long long long long
+    texte histoire de voir ce qui se passe
+    </div>
+    <div class="div1">
+        div1
+    </div>
+    <div class="div2">
+        div2 avec du texte qui sera plus long que la longueur de la boite
+    </div>
+
+    <div class="over" draggable="true">overlay !!! <div>
+            une div avec une position relative de 50 px et 50 px</div>
+        puis le flux reprend de plus belle avec un très long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long<br>
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long long long long long long long long long long long long long long long long long long long
+        long long long long
+        texte histoire de voir ce qui se passe
+    </div>
+
+    </div>
+
+    <script>
+        var el = document.querySelector(".over");
+        var startPosition;
+        document.addEventListener("dragstart", function(e)
+        {
+            e = e || window.event;
+    var dragX = e.pageX, dragY = e.pageY;
+
+    console.log("X: "+dragX+" Y: "+dragY);
+        }, false)
+
+        document.addEventListener("dragover", function(e)
+        {
+            e = e || window.event;
+    var dragX = e.pageX, dragY = e.pageY;
+
+    console.log("X: "+dragX+" Y: "+dragY);
+        }, false)
+
+    </script>
+</body>
+
+</html>

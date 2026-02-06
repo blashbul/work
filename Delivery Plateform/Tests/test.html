@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Planning Chauffeurs (Pixel)</title>
+  <style>
+    /* =========================
+       THEME (pixel / neon)
+       ========================= */
+    :root{
+      --bg0:#04070d;
+      --bg1:#071126;
+      --panel:#0b1a38;
+      --panel2:#0a1530;
+      --stroke:#2a5cff;
+      --stroke2:#16336e;
+      --text:#d6f2ff;
+      --muted:#7fb7ff;
+      --grid:#1b3a74;
+
+      --ok1:#0dff8a;
+      --ok2:#00b86a;
+
+      --pause1:#ffd33a;
+      --pause2:#ff8a00;
+
+      --mission1:#22ff66;
+      --mission2:#0dc24a;
+
+      --late1:#ff3a3a;
+      --late2:#b1002b;
+
+      --blue1:#22c8ff;
+      --blue2:#1972ff;
+
+      --shadow: 0 0 14px rgba(48,132,255,.35), 0 0 32px rgba(48,132,255,.18);
+      --shadow-strong: 0 0 18px rgba(48,132,255,.55), 0 0 44px rgba(48,132,255,.25);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 480px at 15% 15%, rgba(70,140,255,.25), transparent 60%),
+        radial-gradient(720px 420px at 85% 75%, rgba(0,255,160,.12), transparent 60%),
+        radial-gradient(520px 280px at 60% 35%, rgba(255,210,60,.08), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:24px;
+    }
+
+    /* Pixel-ish helpers */
+    .pixel-border{
+      border:2px solid rgba(72,150,255,.75);
+      box-shadow: var(--shadow);
+      position:relative;
+    }
+    .pixel-border:before{
+      content:"";
+      position:absolute; inset:-8px;
+      border:2px solid rgba(25,70,170,.55);
+      filter: drop-shadow(0 0 10px rgba(80,150,255,.35));
+      pointer-events:none;
+    }
+    .scanlines{
+      position:relative;
+      overflow:hidden;
+    }
+    .scanlines:after{
+      content:"";
+      position:absolute; inset:0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.04) 0px,
+        rgba(255,255,255,.04) 1px,
+        transparent 2px,
+        transparent 4px
+      );
+      opacity:.35;
+      pointer-events:none;
+      mix-blend-mode: overlay;
+    }
+    .stars{
+      background:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,.14) 0 1px, transparent 2px),
+        radial-gradient(circle at 80% 40%, rgba(255,255,255,.12) 0 1px, transparent 2px),
+        radial-gradient(circle at 60% 80%, rgba(255,255,255,.10) 0 1px, transparent 2px),
+        radial-gradient(circle at 35% 70%, rgba(255,255,255,.10) 0 1px, transparent 2px);
+      background-size: 260px 180px;
+      background-repeat: repeat;
+    }
+
+    /* =========================
+       WINDOW
+       ========================= */
+    .window{
+      width:min(980px, 96vw);
+      border-radius:8px;
+      background:
+        linear-gradient(180deg, rgba(20,60,160,.35), rgba(12,24,56,.75)),
+        linear-gradient(180deg, #0b1534, #070f22);
+      overflow:hidden;
+    }
+    .titlebar{
+      height:42px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 12px 0 14px;
+      background: linear-gradient(180deg, rgba(80,150,255,.35), rgba(10,20,52,.65));
+      border-bottom:1px solid rgba(72,150,255,.35);
+    }
+    .titlebar .left{
+      display:flex; align-items:center; gap:10px;
+      font-weight:700;
+      letter-spacing:.3px;
+      text-shadow: 0 0 10px rgba(80,150,255,.45);
+    }
+    .titlebar .icon{
+      width:14px; height:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.2));
+      clip-path: polygon(0 20%, 80% 20%, 80% 0, 100% 0, 100% 80%, 20% 80%, 20% 100%, 0 100%);
+      filter: drop-shadow(0 0 6px rgba(80,150,255,.7));
+      opacity:.9;
+    }
+    .win-controls{ display:flex; gap:8px; }
+    .btn{
+      width:16px; height:16px; border-radius:2px;
+      border:1px solid rgba(200,230,255,.35);
+      background: rgba(10,20,50,.65);
+      box-shadow: inset 0 0 0 1px rgba(50,120,255,.25);
+    }
+
+    /* =========================
+       TOP BAR (search + stats)
+       ========================= */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:10px 12px;
+      background: rgba(8,16,40,.55);
+      border-bottom:1px solid rgba(72,150,255,.20);
+    }
+
+    .search{
+      flex: 1;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 10px;
+      background: linear-gradient(180deg, rgba(10,25,60,.85), rgba(6,14,38,.85));
+      border:1px solid rgba(72,150,255,.35);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.45);
+      border-radius:6px;
+      min-width: 280px;
+    }
+    .search .glass{
+      width:14px; height:14px;
+      border:2px solid rgba(180,230,255,.85);
+      border-radius:50%;
+      position:relative;
+      filter: drop-shadow(0 0 6px rgba(72,150,255,.7));
+      opacity:.95;
+    }
+    .search .glass:after{
+      content:"";
+      position:absolute;
+      width:8px; height:2px;
+      background: rgba(180,230,255,.85);
+      right:-7px; bottom:-4px;
+      transform: rotate(45deg);
+      border-radius:2px;
+    }
+    .search input{
+      width:100%;
+      border:0;
+      outline:0;
+      background: transparent;
+      color: var(--text);
+      font-size:14px;
+    }
+    .search input::placeholder{ color: rgba(170,210,255,.65); }
+
+    .stats{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      white-space:nowrap;
+      font-size:13px;
+      color: rgba(210,240,255,.9);
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(10,25,60,.55);
+      border:1px solid rgba(72,150,255,.25);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.4);
+    }
+    .chip .cal{
+      width:14px; height:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.15));
+      clip-path: polygon(0 20%, 100% 20%, 100% 100%, 0 100%, 0 20%, 10% 0, 35% 0, 35% 20%, 65% 20%, 65% 0, 90% 0);
+      opacity:.9;
+      filter: drop-shadow(0 0 6px rgba(72,150,255,.55));
+    }
+    .stat-number{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-weight:800;
+      font-size:18px;
+      color: #ffe86a;
+      text-shadow: 0 0 10px rgba(255,232,106,.35);
+      margin-left:6px;
+    }
+    .heart{
+      width:14px; height:14px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.85), rgba(255,255,255,.0) 55%),
+                  linear-gradient(180deg, rgba(0,255,160,.95), rgba(0,160,110,.8));
+      clip-path: path("M7 13 C7 13, 1 9, 1 5 C1 3, 2.5 1.5, 4.4 1.5 C5.6 1.5, 6.6 2.2, 7 3.1 C7.4 2.2, 8.4 1.5, 9.6 1.5 C11.5 1.5, 13 3, 13 5 C13 9, 7 13, 7 13 Z");
+      filter: drop-shadow(0 0 8px rgba(0,255,160,.35));
+      opacity:.95;
+    }
+    .percent{
+      font-weight:800;
+      font-size:18px;
+      color:#7dffcc;
+      text-shadow: 0 0 10px rgba(0,255,160,.25);
+    }
+
+    /* =========================
+       GRID / TIMELINE
+       ========================= */
+    .content{
+      padding:12px;
+    }
+    .timeline-wrap{
+      border-radius:8px;
+      background: linear-gradient(180deg, rgba(7,12,28,.55), rgba(6,10,22,.65));
+      border:1px solid rgba(72,150,255,.25);
+      box-shadow: var(--shadow);
+      padding:10px 10px 12px;
+    }
+
+    /* header row: blank left column + timeline labels */
+    .grid{
+      display:grid;
+      grid-template-columns: 190px 1fr;
+      gap:10px;
+    }
+
+    .time-header{
+      position:relative;
+      padding:6px 10px 10px;
+      border-radius:6px;
+      background: rgba(5,10,22,.45);
+      border:1px solid rgba(72,150,255,.18);
+      overflow:hidden;
+    }
+    .time-labels{
+      display:grid;
+      grid-template-columns: repeat(11, 1fr); /* 00..20 step 2 => 11 labels */
+      gap:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-weight:800;
+      font-size:12px;
+      color: rgba(210,240,255,.85);
+      text-shadow: 0 0 8px rgba(80,150,255,.25);
+    }
+    .time-labels span{ text-align:center; }
+
+    /* neon line + ticks */
+    .time-line{
+      height:10px;
+      margin-top:8px;
+      position:relative;
+    }
+    .time-line:before{
+      content:"";
+      position:absolute; left:0; right:0; top:50%;
+      height:2px;
+      transform: translateY(-50%);
+      background: linear-gradient(90deg, rgba(40,120,255,.0), rgba(40,120,255,.95), rgba(40,120,255,.0));
+      box-shadow: 0 0 12px rgba(40,120,255,.55);
+      opacity:.95;
+    }
+    .time-line:after{
+      content:"";
+      position:absolute; inset:0;
+      background: repeating-linear-gradient(
+        to right,
+        rgba(120,200,255,.0) 0px,
+        rgba(120,200,255,.0) 24px,
+        rgba(120,200,255,.35) 25px,
+        rgba(120,200,255,.0) 26px
+      );
+      opacity:.65;
+      mix-blend-mode: screen;
+    }
+
+    /* rows */
+    .row{
+      display:grid;
+      grid-template-columns: 190px 1fr;
+      gap:10px;
+      align-items:stretch;
+      margin-top:10px;
+    }
+
+    .driver{
+      border-radius:6px;
+      background: linear-gradient(180deg, rgba(10,25,60,.75), rgba(6,14,34,.75));
+      border:1px solid rgba(72,150,255,.25);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.45);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px;
+    }
+    .avatar{
+      width:34px; height:34px;
+      border-radius:6px;
+      border:1px solid rgba(255,255,255,.2);
+      box-shadow: 0 0 10px rgba(80,150,255,.25);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.12), rgba(0,0,0,.1)),
+        radial-gradient(circle at 35% 30%, rgba(255,220,160,.85), rgba(255,220,160,.0) 55%),
+        radial-gradient(circle at 50% 75%, rgba(60,120,255,.7), rgba(60,120,255,.0) 60%),
+        linear-gradient(90deg, rgba(255,90,90,.65), rgba(255,90,90,0) 60%);
+      position:relative;
+      image-rendering: pixelated;
+    }
+    .avatar:after{
+      content:"";
+      position:absolute; inset:0;
+      background: repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 1px, transparent 1px 3px);
+      opacity:.45;
+      mix-blend-mode: overlay;
+      border-radius:6px;
+      pointer-events:none;
+    }
+    .driver .name{
+      font-weight:800;
+      font-size:14px;
+      color: rgba(220,245,255,.95);
+      text-shadow: 0 0 10px rgba(80,150,255,.35);
+    }
+
+    .lane{
+      border-radius:6px;
+      background:
+        linear-gradient(180deg, rgba(6,12,26,.55), rgba(6,12,26,.75)),
+        radial-gradient(120px 80px at 30% 30%, rgba(72,150,255,.12), transparent 60%),
+        radial-gradient(120px 80px at 70% 70%, rgba(0,255,160,.06), transparent 60%);
+      border:1px solid rgba(72,150,255,.18);
+      position:relative;
+      overflow:hidden;
+      padding:10px;
+      min-height:56px;
+    }
+
+    /* vertical grid inside lane */
+    .lane:before{
+      content:"";
+      position:absolute; inset:0;
+      background: repeating-linear-gradient(
+        to right,
+        rgba(120,200,255,.0) 0px,
+        rgba(120,200,255,.0) 48px,
+        rgba(120,200,255,.16) 49px,
+        rgba(120,200,255,.0) 50px
+      );
+      opacity:.75;
+      pointer-events:none;
+    }
+
+    /* tasks container = 24h scaled to 960px? We'll use percentage-based layout */
+    .tasks{ position:relative; height:36px; }
+
+    .task{
+      position:absolute;
+      top:0; bottom:0;
+      border-radius:6px;
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow: 0 0 10px rgba(255,255,255,.08);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0 10px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.6px;
+      font-size:12px;
+      text-shadow: 0 0 10px rgba(0,0,0,.35), 0 0 12px rgba(255,255,255,.15);
+      overflow:hidden;
+    }
+    /* dotted / pixel edge look */
+    .task:before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.20) 0 2px, transparent 2px 6px);
+      opacity:.18;
+      mix-blend-mode: overlay;
+      pointer-events:none;
+    }
+    .task:after{
+      content:"";
+      position:absolute; inset:-2px;
+      border:2px dashed rgba(255,255,255,.18);
+      border-radius:8px;
+      opacity:.35;
+      pointer-events:none;
+    }
+
+    .ok{
+      background: linear-gradient(180deg, rgba(13,255,138,.95), rgba(0,184,106,.75));
+      box-shadow: 0 0 14px rgba(13,255,138,.25), 0 0 28px rgba(13,255,138,.12);
+      color: #052014;
+    }
+    .pause{
+      background: linear-gradient(180deg, rgba(255,211,58,.95), rgba(255,138,0,.8));
+      box-shadow: 0 0 14px rgba(255,211,58,.20), 0 0 28px rgba(255,138,0,.12);
+      color: #2a1800;
+    }
+    .mission{
+      background: linear-gradient(180deg, rgba(34,255,102,.95), rgba(13,194,74,.8));
+      box-shadow: 0 0 14px rgba(34,255,102,.20), 0 0 28px rgba(13,194,74,.12);
+      color:#052014;
+    }
+    .late{
+      background: linear-gradient(180deg, rgba(255,58,58,.95), rgba(177,0,43,.85));
+      box-shadow: 0 0 16px rgba(255,58,58,.20), 0 0 30px rgba(177,0,43,.12);
+      color:#2b0008;
+    }
+    .empty{
+      background: linear-gradient(180deg, rgba(34,200,255,.85), rgba(25,114,255,.70));
+      box-shadow: 0 0 14px rgba(34,200,255,.18), 0 0 28px rgba(25,114,255,.10);
+      color:#021a2b;
+    }
+
+    /* highlighted badge like "TERMINÉ !" */
+    .burst{
+      position:absolute;
+      top:-10px;
+      left:50%;
+      transform: translateX(-50%);
+      padding:6px 10px;
+      font-size:11px;
+      font-weight:1000;
+      border-radius:999px;
+      color:#071126;
+      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,232,106,.75));
+      border:1px solid rgba(0,0,0,.25);
+      box-shadow: 0 0 16px rgba(255,232,106,.25), 0 0 28px rgba(255,232,106,.12);
+      text-shadow:none;
+    }
+    .spark{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(circle at 18% 40%, rgba(255,255,255,.8) 0 2px, transparent 3px),
+        radial-gradient(circle at 84% 55%, rgba(255,255,255,.8) 0 2px, transparent 3px),
+        radial-gradient(circle at 52% 20%, rgba(255,255,255,.7) 0 1px, transparent 2px);
+      opacity:.55;
+      pointer-events:none;
+      mix-blend-mode: screen;
+    }
+
+    /* sizing: we map 00->20 as 100% width (like screenshot) */
+    /* helper: 2h segment = 10% (since 0..20 => 10 segments) */
+    /* We'll position tasks with left/width in % relative to 0..20. */
+
+    /* small footer glow */
+    .footer-glow{
+      height:10px;
+      margin-top:10px;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(40,120,255,.0), rgba(40,120,255,.25), rgba(40,120,255,.0));
+      filter: blur(.1px);
+      opacity:.85;
+    }
+
+    /* responsive */
+    @media (max-width: 740px){
+      .grid, .row{ grid-template-columns: 1fr; }
+      .driver{ justify-content:flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="window pixel-border scanlines stars">
+    <div class="titlebar">
+      <div class="left">
+        <span class="icon" aria-hidden="true"></span>
+        <span>Planning Chauffeurs</span>
+      </div>
+      <div class="win-controls" aria-hidden="true">
+        <span class="btn"></span><span class="btn"></span><span class="btn"></span>
+      </div>
+    </div>
+
+    <div class="topbar">
+      <div class="search">
+        <span class="glass" aria-hidden="true"></span>
+        <input placeholder="Rechercher un chauffeur..." />
+      </div>
+
+      <div class="stats">
+        <span class="chip">
+          <span class="cal" aria-hidden="true"></span>
+          Jours sans retard <span class="stat-number">05</span>
+        </span>
+        <span class="chip">
+          <span class="heart" aria-hidden="true"></span>
+          <span class="percent">96%</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="timeline-wrap">
+        <div class="grid">
+          <div></div>
+          <div class="time-header">
+            <div class="time-labels">
+              <span>00:00</span><span>02:00</span><span>04:00</span><span>06:00</span><span>08:00</span><span>10:00</span>
+              <span>12:00</span><span>14:00</span><span>16:00</span><span>18:00</span><span>20:00</span>
+            </div>
+            <div class="time-line" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <!-- ROW 1 -->
+        <div class="row">
+          <div class="driver">
+            <div class="avatar" aria-hidden="true"></div>
+            <div class="name">L. Dubois</div>
+          </div>
+          <div class="lane">
+            <div class="tasks">
+              <!-- 0..20 mapped to 0..100% -->
+              <div class="task ok" style="left:10%; width:22%;">MISSION OK</div>
+              <div class="task pause" style="left:34%; width:14%;">PAUSE</div>
+              <div class="task mission" style="left:50%; width:38%;">MISSION</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 2 -->
+        <div class="row">
+          <div class="driver">
+            <div class="avatar" aria-hidden="true" style="background:
+              linear-gradient(180deg, rgba(255,255,255,.12), rgba(0,0,0,.1)),
+              radial-gradient(circle at 35% 30%, rgba(255,220,160,.85), rgba(255,220,160,.0) 55%),
+              radial-gradient(circle at 55% 80%, rgba(255,80,80,.65), rgba(255,80,80,.0) 60%),
+              linear-gradient(90deg, rgba(60,120,255,.7), rgba(60,120,255,0) 60%);"></div>
+            <div class="name">M. Petit</div>
+          </div>
+          <div class="lane">
+            <div class="tasks">
+              <div class="task ok" style="left:10%; width:22%;">MISSION OK</div>
+
+              <div class="task pause" style="left:34%; width:16%;">
+                <span class="spark"></span>
+                <!-- badge -->
+                <span class="burst">+ TERMINÉ !</span>
+                PAUSE
+              </div>
+
+              <div class="task late" style="left:52%; width:26%;">EN RETARD !</div>
+              <div class="task mission" style="left:80%; width:18%;">MISSION</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 3 -->
+        <div class="row">
+          <div class="driver">
+            <div class="avatar" aria-hidden="true" style="background:
+              linear-gradient(180deg, rgba(255,255,255,.12), rgba(0,0,0,.1)),
+              radial-gradient(circle at 35% 30%, rgba(255,220,160,.85), rgba(255,220,160,.0) 55%),
+              radial-gradient(circle at 50% 75%, rgba(0,255,160,.65), rgba(0,255,160,.0) 60%),
+              linear-gradient(90deg, rgba(255,90,90,.55), rgba(255,90,90,0) 60%);"></div>
+            <div class="name">A. Karim</div>
+          </div>
+          <div class="lane">
+            <div class="tasks">
+              <div class="task empty" style="left:10%; width:16%;">VIDE</div>
+              <div class="task pause" style="left:28%; width:18%;">PAUSE</div>
+              <div class="task mission" style="left:48%; width:28%;">MISSION</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 4 -->
+        <div class="row">
+          <div class="driver">
+            <div class="avatar" aria-hidden="true" style="background:
+              linear-gradient(180deg, rgba(255,255,255,.12), rgba(0,0,0,.1)),
+              radial-gradient(circle at 35% 30%, rgba(255,220,160,.85), rgba(255,220,160,.0) 55%),
+              radial-gradient(circle at 55% 80%, rgba(255,211,58,.65), rgba(255,211,58,.0) 60%),
+              linear-gradient(90deg, rgba(34,200,255,.65), rgba(34,200,255,0) 60%);"></div>
+            <div class="name">S. Martin</div>
+          </div>
+          <div class="lane">
+            <div class="tasks">
+              <div class="task empty" style="left:10%; width:16%;">VIDE</div>
+              <div class="task pause" style="left:28%; width:18%;">PAUSE</div>
+              <div class="task late" style="left:48%; width:22%;">EN RETARD !</div>
+              <div class="task late" style="left:72%; width:16%;">LATE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-glow" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

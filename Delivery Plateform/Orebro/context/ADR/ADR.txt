@@ -1,0 +1,10 @@
+16/10/2025
+Le système sera architecturé sous forme d'api en mode modular monolith.
+Le front sera en angular 21 minimum
+
+04/09/2025
+Le système est multi-tenant. Le TenantId est un guid
+Frameworks:
+ EF Core
+ Wolverine
+

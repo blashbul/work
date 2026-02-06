@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transport Order (Compact)</title>
+  <style>
+    :root {
+      --label-w: 150px;
+      --gap: 10px;
+      --max-w: 1000px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f3f4f6;
+      color: #111;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    h1 {
+      text-align: center;
+      margin: 0 0 16px;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    form {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      padding: 16px 20px;
+    }
+    fieldset {
+      border: none;
+      margin: 0 0 18px;
+      padding: 0;
+    }
+    legend {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #222;
+    }
+    .section {
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px 14px;
+      background: #fafafa;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: var(--label-w) 1fr;
+      gap: var(--gap);
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .form-row .label {
+      text-align: right;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .required::after {
+      content: "*";
+      color: #c00;
+      margin-left: 2px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font: inherit;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37,99,235,.25);
+      outline: none;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .actions {
+      text-align: right;
+      margin-top: 10px;
+    }
+    button {
+      padding: 7px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111;
+      margin-right: 6px;
+    }
+    .btn-secondary:hover { background: #d1d5db; }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .two-col { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-row .label { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Transport Order</h1>
+  <form>
+    <!-- Customer -->
+    <fieldset>
+      <legend>Customer</legend>
+      <div class="section two-col">
+        <div>
+          <div class="form-row">
+            <label class="label required" for="customerName">Name</label>
+            <input id="customerName" type="text" required>
+          </div>
+          <div class="form-row">
+            <label class="label required" for="customerEmail">Email</label>
+            <input id="customerEmail" type="email" required>
+          </div>
+        </div>
+        <div>
+          <div class="form-row">
+            <label class="label" for="accountNumber">Account #</label>
+            <input id="accountNumber" type="text">
+          </div>
+          <div class="form-row">
+            <label class="label" for="customerPhone">Phone</label>
+            <input id="customerPhone" type="tel">
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Pickup & Delivery -->
+    <fieldset>
+      <legend>Pickup & Delivery</legend>
+      <div class="section two-col">
+        <div>
+          <div class="form-row">
+            <label class="label required" for="pickupAddress">Pickup Address</label>
+            <input id="pickupAddress" type="text" required>
+          </div>
+          <div class="form-row">
+            <label class="label" for="pickupDate">Pickup Date</label>
+            <input id="pickupDate" type="date">
+          </div>
+          <div class="form-row">
+            <label class="label" for="pickupTime">Pickup Time</label>
+            <input id="pickupTime" type="time">
+          </div>
+        </div>
+        <div>
+          <div class="form-row">
+            <label class="label required" for="deliveryAddress">Delivery Address</label>
+            <input id="deliveryAddress" type="text" required>
+          </div>
+          <div class="form-row">
+            <label class="label" for="deliveryDate">Delivery Date</label>
+            <input id="deliveryDate" type="date">
+          </div>
+          <div class="form-row">
+            <label class="label" for="deliveryTime">Delivery Time</label>
+            <input id="deliveryTime" type="time">
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Shipment -->
+    <fieldset>
+      <legend>Shipment</legend>
+      <div class="section two-col">
+        <div>
+          <div class="form-row">
+            <label class="label required" for="parcelCount">Parcels</label>
+            <input id="parcelCount" type="number" min="1" required>
+          </div>
+          <div class="form-row">
+            <label class="label" for="weight">Weight (kg)</label>
+            <input id="weight" type="number" step="0.1">
+          </div>
+        </div>
+        <div>
+          <div class="form-row">
+            <label class="label required" for="serviceLevel">Service</label>
+            <select id="serviceLevel" required>
+              <option value="">Select…</option>
+              <option>Standard</option>
+              <option>Express</option>
+              <option>Same Day</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="label" for="options">Options</label>
+            <select id="options" multiple>
+              <option>Fragile</option>
+              <option>Insurance</option>
+              <option>COD</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button type="reset" class="btn btn-secondary">Reset</button>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+  </form>
+</body>
+</html>
